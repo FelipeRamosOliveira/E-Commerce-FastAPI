@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .database import SessionLocal, engine
 from .models import Sale, Base
 from .schemas import SaleCreate
-from .crud import get_sales_count, get_sale_by_id, create_new_sale
+from .operations import get_sales_count, get_sale_by_id, create_new_sale
 
 # Initialize the FastAPI app
 app = FastAPI()

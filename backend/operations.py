@@ -26,3 +26,6 @@ def create_new_sale(sale: SaleCreate, db: Session):
     db.commit()
     db.refresh(new_sale)
     return new_sale
+
+def oi():
+    return "oi"
