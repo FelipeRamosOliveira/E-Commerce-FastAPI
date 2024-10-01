@@ -1,31 +1,53 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
-from .models import Sale
-from .schemas import SaleCreate
+from . import models, schemas, auth
 
-# Get the total number of sales
-def get_sales_count(db: Session):
-    return {"Sales": db.query(Sale).count()}
+def create_user(db: Session, user: schemas.UserCreate):
+    hashed_password = auth.hash_password(user.password)
+    db_user = models.User(username=user.username, hashed_password=hashed_password)
 
-# Get a sale by its ID
-def get_sale_by_id(sale_id: int, db: Session):
-    sale = db.query(Sale).filter(Sale.id == sale_id).first()
-    if sale:
-        return {
-            "id": sale.id,
-            "item": sale.item,
-            "unit_price": sale.unit_price,
-            "quantity": sale.quantity,
-        }
-    raise HTTPException(status_code=404, detail="Sale ID does not exist")
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except IntegrityError:
+        db.rollback()  # Rollback in case of an error
+        raise HTTPException(status_code=400, detail="Username already registered")
 
-# Create a new sale
-def create_new_sale(sale: SaleCreate, db: Session):
-    new_sale = Sale(item=sale.item, unit_price=sale.unit_price, quantity=sale.quantity)
-    db.add(new_sale)
-    db.commit()
-    db.refresh(new_sale)
-    return new_sale
+    return db_user
 
-def oi():
-    return "oi"
+def get_user(db: Session, username: str):
+    db_user = db.query(models.User).filter(models.User.username == username).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+def create_product(db: Session, product: schemas.ProductCreate):
+    db_product = models.Product(**product.dict())
+
+    try:
+        db.add(db_product)
+        db.commit()
+        db.refresh(db_product)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Product already exists")
+
+    return db_product
+
+def get_products(db: Session):
+    return db.query(models.Product).all()
+
+def create_order(db: Session, order: schemas.OrderCreate):
+    db_order = models.Order(user_id=order.user_id, products=str(order.products))
+
+    try:
+        db.add(db_order)
+        db.commit()
+        db.refresh(db_order)
+    except Exception as e:  # Catch other exceptions, such as IntegrityError
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Error creating order: " + str(e))
+
+    return db_order

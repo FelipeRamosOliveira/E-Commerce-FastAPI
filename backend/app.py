@@ -1,22 +1,53 @@
 import warnings
 warnings.filterwarnings("ignore")
-#
-from fastapi import FastAPI, Depends, HTTPException
+
+# FastAPI and dependencies
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+
+# Local modules
+import logging
+from .auth import hash_password
 from .database import SessionLocal, engine
-from .models import Sale, Base
-from .schemas import SaleCreate
-from .operations import get_sales_count, get_sale_by_id, create_new_sale
+from .models import Base, Product, User
+from .logging import setup_logging
+from .schemas import UserSchema, UserCreate, ProductSchema, ProductCreate, OrderCreate
+from .operations import (
+    create_user,
+    get_user,
+    create_product,
+    get_products,
+    create_order
+)
 
 # Initialize the FastAPI app
 app = FastAPI()
 
-# Create the database tables if they don't exist
+# Setup logging configuration
+setup_logging()
+logging.basicConfig(level=logging.INFO)
+
+# Middleware for logging requests and responses
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """
+    Log incoming requests and outgoing responses.
+    """
+    logging.info(f"Request: {request.method} {request.url}")
+    response = await call_next(request)
+    logging.info(f"Response status: {response.status_code}")
+    return response
+
+# Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
-# Dependency to get DB session
+# Dependency to get a database session
 def get_db():
+    """
+    Provide a database session.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -26,35 +57,75 @@ def get_db():
 # Redirect root URL to documentation
 @app.get("/")
 def home():
+    """
+    Redirect to FastAPI documentation.
+    """
     return RedirectResponse(url="/docs")
 
-# Route to get total sales count
-@app.get("/sales")
-def sales_count(db: Session = Depends(get_db)):
-    return get_sales_count(db)
+# User management routes
+@app.post("/users/", response_model=UserSchema)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+    """
+    db_user = get_user(db, user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    return create_user(db=db, user=user)
 
-# Route to get a sale by ID
-@app.get("/sales/{sale_id}")
-def read_sale(sale_id: int, db: Session = Depends(get_db)):
-    return get_sale_by_id(sale_id, db)
+# Product management routes
+@app.post("/products/", response_model=ProductSchema)
+def add_product(product: ProductCreate, db: Session = Depends(get_db)):
+    """
+    Add a new product.
+    """
+    return create_product(db=db, product=product)
 
-# Route to create a new sale
-@app.post("/sales", response_model=SaleCreate)
-def new_sale(sale: SaleCreate, db: Session = Depends(get_db)):
-    return create_new_sale(sale, db)
+@app.get("/products/", response_model=List[ProductSchema])
+def list_products(db: Session = Depends(get_db)):
+    """
+    List all products.
+    """
+    return get_products(db=db)
 
+# Order management route
+@app.post("/orders/", response_model=OrderCreate)
+def place_order(order: OrderCreate, db: Session = Depends(get_db)):
+    """
+    Place a new order.
+    """
+    return create_order(db=db, order=order)
+
+# Startup event to populate mock data
 @app.on_event("startup")
 def startup():
+    """
+    Populate mock products and users data if tables are empty.
+    """
     db = SessionLocal()
-    if db.query(Sale).count() == 0:
-        # Populate mock data if the table is empty
-        mock_sales = [
-            {"item": "can", "unit_price": 4, "quantity": 5},
-            {"item": "2L bottle", "unit_price": 15, "quantity": 5},
-            {"item": "750ml bottle", "unit_price": 10, "quantity": 5},
-            {"item": "mini can", "unit_price": 2, "quantity": 5},
+
+    # Populate mock products data if the products table is empty
+    if db.query(Product).count() == 0:
+        mock_products = [
+            {"name": "Skol", "description": "Light beer", "price": 1.5},
+            {"name": "Brahma", "description": "Premium lager", "price": 1.8},
+            {"name": "Antarctica", "description": "Pale lager", "price": 1.6},
+            {"name": "Guaraná Antarctica", "description": "Soft drink", "price": 1.2},
+            {"name": "Beck's", "description": "German pilsner beer", "price": 2.0},
         ]
-        for sale_data in mock_sales:
-            sale = Sale(**sale_data)
-            db.add(sale)
+        for product_data in mock_products:
+            product = Product(**product_data)
+            db.add(product)
+        db.commit()
+    
+    # Populate mock users data if the users table is empty
+    if db.query(User).count() == 0:
+        mock_users = [
+            {"username": "user1", "hashed_password": hash_password("hashedpassword1")},
+            {"username": "user2", "hashed_password": hash_password("hashedpassword2")},
+            {"username": "admin", "hashed_password": hash_password("hashedadminpassword")},
+        ]
+        for user_data in mock_users:
+            user = User(**user_data)
+            db.add(user)
         db.commit()
