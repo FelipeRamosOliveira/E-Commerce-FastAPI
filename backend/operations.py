@@ -42,7 +42,6 @@ def create_product(db: Session, product: schemas.ProductCreate):
 def get_products(db: Session):
     try:
         products = db.query(models.Product).all()
-        logging.info(f"Found {len(products)} products.")
         return products
     except Exception as e:
         logging.error(f"Error fetching products: {e}")

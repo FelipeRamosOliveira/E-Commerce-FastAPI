@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy import Column, Integer, Float, String  
 from sqlalchemy.orm import relationship
 from .database import Base
+from sqlalchemy import Column, Integer, String
 
 class User(Base):
     __tablename__ = "users"
@@ -12,22 +13,13 @@ class User(Base):
     hashed_password = Column(String)
     orders = relationship("Order", back_populates="owner")
 
-# class Product(Base):
-#     __tablename__ = "products"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String, index=True)
-#     description = Column(String)
-#     price = Column(Integer)
-
-
 class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
-    price = Column(Float)  # Altere de Integer para Float
+    price = Column(Float)
 
 
 class Order(Base):

@@ -21,11 +21,11 @@ class ProductSchema(BaseModel):
     id: int
     name: str
     description: str
-    price: int
+    price: float
 
     class Config:
-        orm_mode = True
+        orm_mode = True  
 
 class OrderCreate(BaseModel):
     user_id: int
-    products: List[int]  # List of product IDs
+    products: List[int]  
