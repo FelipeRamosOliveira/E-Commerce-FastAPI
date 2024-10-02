@@ -62,15 +62,28 @@ def home():
     """
     return RedirectResponse(url="/docs")
 
-# User management routes
+# # User management routes
+# @app.post("/users/", response_model=UserSchema)
+# def register_user(user: UserCreate, db: Session = Depends(get_db)):
+#     """
+#     Register a new user.
+#     """
+#     db_user = get_user(db, user.username)
+#     if db_user:
+#         raise HTTPException(status_code=400, detail="Username already registered")
+#     return create_user(db=db, user=user)
+
 @app.post("/users/", response_model=UserSchema)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user.
     """
+    # Verificar se o usuário já existe
     db_user = get_user(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Criar o usuário caso ele não exista
     return create_user(db=db, user=user)
 
 # Product management routes
@@ -96,15 +109,33 @@ def place_order(order: OrderCreate, db: Session = Depends(get_db)):
     """
     return create_order(db=db, order=order)
 
-# Startup event to populate mock data
+# # Startup event to populate mock data
+# @app.on_event("startup")
+# def startup():
+#     """
+#     Populate mock products and users data if tables are empty.
+#     """
+#     db = SessionLocal()
+
+#     # Populate mock products data if the products table is empty
+#     if db.query(Product).count() == 0:
+#         mock_products = [
+#             {"name": "Skol", "description": "Light beer", "price": 1.5},
+#             {"name": "Brahma", "description": "Premium lager", "price": 1.8},
+#             {"name": "Antarctica", "description": "Pale lager", "price": 1.6},
+#             {"name": "Guaraná Antarctica", "description": "Soft drink", "price": 1.2},
+#             {"name": "Beck's", "description": "German pilsner beer", "price": 2.0},
+#         ]
+#         for product_data in mock_products:
+#             product = Product(**product_data)
+#             db.add(product)
+#         db.commit()
+
 @app.on_event("startup")
 def startup():
-    """
-    Populate mock products and users data if tables are empty.
-    """
     db = SessionLocal()
 
-    # Populate mock products data if the products table is empty
+    # Popule dados fictícios se a tabela de produtos estiver vazia
     if db.query(Product).count() == 0:
         mock_products = [
             {"name": "Skol", "description": "Light beer", "price": 1.5},

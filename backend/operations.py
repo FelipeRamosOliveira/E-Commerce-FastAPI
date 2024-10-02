@@ -18,10 +18,10 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 def get_user(db: Session, username: str):
-    db_user = db.query(models.User).filter(models.User.username == username).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    """
+    Retrieve a user by username.
+    """
+    return db.query(models.User).filter(models.User.username == username).first()
 
 def create_product(db: Session, product: schemas.ProductCreate):
     db_product = models.Product(**product.dict())
@@ -36,8 +36,18 @@ def create_product(db: Session, product: schemas.ProductCreate):
 
     return db_product
 
+# def get_products(db: Session):
+#     return db.query(models.Product).all()
+
 def get_products(db: Session):
-    return db.query(models.Product).all()
+    try:
+        products = db.query(models.Product).all()
+        logging.info(f"Found {len(products)} products.")
+        return products
+    except Exception as e:
+        logging.error(f"Error fetching products: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 def create_order(db: Session, order: schemas.OrderCreate):
     db_order = models.Order(user_id=order.user_id, products=str(order.products))
