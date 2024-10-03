@@ -95,6 +95,22 @@ poetry run pytest
 
 This will execute the tests defined in the `tests` directory.
 
-## License
+## Docker Deployment
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+To run the application using Docker, follow these steps:
+
+1. **Build the Docker Image**:
+
+    ```bash
+    docker build -t my-fastapi-app .
+    ```
+
+2. **Run the Docker Container**:
+
+    ```bash
+    docker run -d -p 8000:8000 my-fastapi-app
+    ```
+
+3. **Access the API**: 
+
+    Once the container is running, you can access your API at `http://localhost:8000`.
