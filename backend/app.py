@@ -62,16 +62,22 @@ def list_products(db: Session = Depends(get_db)):
 cart = []
 
 @app.post("/add-to-cart/")
-async def add_to_cart(item: dict):  # Supondo que espera um dicionário
-    product_name = item.get("product_name")
-    quantity = item.get("quantity", 1)  # Exemplo de campo adicional
-    
-    if not product_name:
-        raise HTTPException(status_code=422, detail="Product name is required")
-    
-    # Lógica para adicionar o item ao carrinho
-    return {"message": f"{quantity}x {product_name} added to cart"}
+def add_to_cart(product_name: str, db: Session = Depends(get_db)):
+    """
+    Adiciona um produto ao carrinho com base no nome do produto.
+    """
+    # Normaliza o nome do produto para remoção de acentos
+    normalized_product_name = product_name.lower()
 
+    # Busca o produto no banco de dados, ignorando maiúsculas/minúsculas e acentos
+    product = db.query(Product).filter(func.lower(Product.name) == normalized_product_name).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # Adiciona o produto ao carrinho
+    cart.append(product)
+    return {"message": f"{product_name} added to cart", "cart_size": len(cart)}
 
 @app.get("/cart/")
 def view_cart(name: str = "Customer"):
