@@ -107,13 +107,13 @@ To run the application using Docker, follow these steps:
 1. **Build the Docker Image**:
 
     ```bash
-    docker build -t my-fastapi-app .
+    docker build -t e-commerce-api .
     ```
 
 2. **Run the Docker Container**:
 
     ```bash
-    docker run -d -p 8000:8000 my-fastapi-app
+    docker run -d -p 8000:8000 e-commerce-api
     ```
 
 3. **Access the API**: 
