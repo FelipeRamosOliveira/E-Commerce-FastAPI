@@ -4,7 +4,7 @@ This is a simple e-commerce API built with FastAPI. It allows users to register,
 
 ## Directory Structure
 
-```
+```sh
 .
 ├── backend
 │   ├── __init__.py
@@ -21,7 +21,6 @@ This is a simple e-commerce API built with FastAPI. It allows users to register,
 ├── pyproject.toml
 ├── pytest.ini
 ├── run.py
-├── test.db
 └── tests
     ├── __init__.py
     └── test_cart.py
@@ -29,17 +28,17 @@ This is a simple e-commerce API built with FastAPI. It allows users to register,
 
 ## Installation
 
+### Prerequisites
+
+- Python 3.10 or later
+- Poetry (for dependency management)
+
 To set up this project, follow these steps:
 
 1. **Install Poetry** (if you haven't already):
 
-   Follow the instructions at [Poetry's official website](https://python-poetry.org/docs/#installation) to install Poetry.
-
-2. **Clone the repository**:
-
-   ```bash
-   git clone <your-repo-url>
-   cd <your-repo-directory>
+    ```bash
+   pip install poetry
    ```
 
 3. **Install the dependencies**:
@@ -55,8 +54,14 @@ To run the FastAPI application, use the following command:
 ```bash
 poetry run python run.py
 ```
+or just
 
-Once the server is running, you can access the API documentation at `http://127.0.0.1:8000/docs`.
+```bash
+python run.py
+```
+
+
+Once the server is running, you can access the API documentation at `http://localhost:8000/docs`.
 
 ## API Endpoints
 

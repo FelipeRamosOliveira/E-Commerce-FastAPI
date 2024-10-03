@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ambev-e-commerce"
 version = "0.1.0"
-description = "Later"
+description = "A simple e-commerce API"
 authors = ["Felipe Oliveira <fp.ramos.oliveira@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -14,10 +14,12 @@ sqlalchemy = "^2.0.35"
 passlib = "^1.7.4"
 httpx = "^0.27.2"
 
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]  # Path to the test directory
+
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
 build-backend = "poetry.core.masonry.api"
