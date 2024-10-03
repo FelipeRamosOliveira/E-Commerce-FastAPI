@@ -4,6 +4,9 @@ from sqlalchemy import Column, Integer, Float, String
 from sqlalchemy.orm import relationship
 from .database import Base
 from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from .database import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -29,3 +32,4 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     products = Column(String)  # Simplified for demonstration
     owner = relationship("User", back_populates="orders")
+
